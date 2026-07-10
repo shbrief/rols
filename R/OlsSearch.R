@@ -78,9 +78,9 @@
 ##'                  olsSearch() |>
 ##'                  as("data.frame")
 ##'
-##' ## The two consecutive small results are identical
-##' ## to the larger on.
-##' identical(rbind(tg1, tg2), tg3)
+##' ## The term IDs of two consecutive small queries are identical
+##' ## to the term IDs of the larger query (columns may vary due to sparse API responses).
+##' identical(c(tg1$obo_id, tg2$obo_id), tg3$obo_id)
 ############################################
 ## OlsSearch class
 .OlsSearch <- setClass("OlsSearch",
