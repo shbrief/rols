@@ -159,9 +159,9 @@ tg3 <- OlsSearch(q = "trans-golgi", rows = 10, start = 0) |>
                  olsSearch() |>
                  as("data.frame")
 
-## The two consecutive small results are identical
-## to the larger on.
-identical(rbind(tg1, tg2), tg3)
+## The term IDs of two consecutive small queries are identical
+## to the term IDs of the larger query (columns may vary due to sparse API responses).
+identical(c(tg1$obo_id, tg2$obo_id), tg3$obo_id)
 }
 \references{
 - OLS3 API (the OLS4 API should function identically to the OLS3):
