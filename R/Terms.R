@@ -540,21 +540,31 @@ makeOlsTerms <- function(oid, pagesize, obsolete) {
     .olsTerms(x = ans)
 }
 
+##' OLS4 omits empty fields from its responses. Substitute a typed
+##' `NA` for those that populate strictly typed (i.e. non
+##' `NullOr*`) slots of the `olsTerm` class, which would otherwise
+##' fail validity with "got class NULL".
+##'
+##' @noRd
+na_if_null <- function(x, mode = "character")
+    if (is.null(x)) as.vector(NA, mode) else x
+
 termFromJson <- function(x) {
-    .olsTerm(iri = x[["iri"]],
-          lang = x[["lang"]],
+    .olsTerm(iri = na_if_null(x[["iri"]]),
+          lang = na_if_null(x[["lang"]]),
           description = x[["description"]],
           synonyms = x[["synonyms"]],
           annotation = x[["annotation"]],
-          label = x[["label"]],
-          ontology_name = x[["ontology_name"]],
-          ontology_prefix = x[["ontology_prefix"]],
-          ontology_iri = x[["ontology_iri"]],
-          is_obsolete = x[["is_obsolete"]],
+          label = na_if_null(x[["label"]]),
+          ontology_name = na_if_null(x[["ontology_name"]]),
+          ontology_prefix = na_if_null(x[["ontology_prefix"]]),
+          ontology_iri = na_if_null(x[["ontology_iri"]]),
+          is_obsolete = na_if_null(x[["is_obsolete"]], "logical"),
           term_replaced_by = x[["term_replaced_by"]],
-          is_defining_ontology = x[["is_defining_ontology"]],
-          has_children = x[["has_children"]],
-          is_root = x[["is_root"]],
+          is_defining_ontology =
+              na_if_null(x[["is_defining_ontology"]], "logical"),
+          has_children = na_if_null(x[["has_children"]], "logical"),
+          is_root = na_if_null(x[["is_root"]], "logical"),
           short_form = x[["short_form"]],
           obo_id = x[["obo_id"]],
           in_subset = x[["in_subset"]],
@@ -562,7 +572,7 @@ termFromJson <- function(x) {
           obo_xref = x[["obo_xref"]],
           obo_synonym = x[["obo_synonym"]],
           is_preferred_root = x[["is_preferred_root"]],
-          links = x[["_links"]])
+          links = if (is.null(x[["_links"]])) list() else x[["_links"]])
 }
 
 fix_null <- function(x) {

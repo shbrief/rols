@@ -47,6 +47,16 @@ test_that("constructors for ontologies hosted outside EBI/OBO PURL", {
     expect_error(olsTerm("go", "GO:0000000000"), "No term")
 })
 
+test_that("terms with fields omitted by OLS4 are still valid", {
+    ## OLS4 drops empty fields from its responses; `ontology_prefix`
+    ## is absent for this term, and used to fail class validity with
+    ## 'got class "NULL"'.
+    trm <- olsTerm("dcat", "DCTERMS:Agent")
+    expect_true(validObject(trm))
+    expect_true(is.na(termPrefix(trm)))
+    expect_identical(termLabel(trm), "Agent")
+})
+
 test_that("show methods", {
     expect_null(show(trms))
     ## expect_null(show(trms[1]))
