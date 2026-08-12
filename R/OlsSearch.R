@@ -9,6 +9,14 @@
 ##' object `OlsSearch` using the `OlsSearch()` constructor. Query
 ##' responses are then retrieved with the `olsSearch()` function.
 ##'
+##' Note that OLS4 omits empty fields from its search responses. The
+##' columns of the `data.frame` produced by `as(object,
+##' "data.frame")` therefore reflect the fields that are populated in
+##' that particular response, and two queries against the same
+##' ontology can return different sets of columns. Match or combine
+##' results on a column that is always present, such as `obo_id` or
+##' `iri`, rather than assuming a fixed set of columns.
+##'
 ##' @references
 ##'
 ##' - OLS3 API (the OLS4 API should function identically to the OLS3):
@@ -78,9 +86,14 @@
 ##'                  olsSearch() |>
 ##'                  as("data.frame")
 ##'
-##' ## The two consecutive small results are identical
-##' ## to the larger on.
-##' identical(rbind(tg1, tg2), tg3)
+##' ## The terms returned by two consecutive small queries are
+##' ## identical to those returned by the larger query. Only the term
+##' ## identifiers are compared here: OLS4 omits empty fields from its
+##' ## responses, so the columns of the individual data frames depend
+##' ## on which fields happen to be populated in that batch, and
+##' ## `rbind()` may fail with "numbers of columns of arguments do not
+##' ## match".
+##' identical(c(tg1$obo_id, tg2$obo_id), tg3$obo_id)
 ############################################
 ## OlsSearch class
 .OlsSearch <- setClass("OlsSearch",
