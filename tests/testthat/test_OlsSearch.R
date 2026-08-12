@@ -35,6 +35,14 @@ test_that("OlsSearch rows", {
     expect_equal(nrow(res@response), 1001L)
 })
 
+test_that("OlsSearch rows are not capped by the constructor", {
+    ## The 1000 row cap used to be applied to the `rows` slot but not
+    ## to the query URL, leaving the two out of sync.
+    res <- OlsSearch(q = "cell", ontology = "GO", rows = 1200)
+    expect_equal(olsRows(res), 1200L)
+    expect_match(res@url, "rows=1200", fixed = TRUE)
+})
+
 test_that("OlsSearch coercion", {
     res <- OlsSearch(q = "plasma", ontology = "GO", rows = 32)
     res <- olsSearch(res)

@@ -163,9 +163,10 @@
 ##'     want to search under.
 ##'
 ##' @param rows `integer(1)` defining the number of query
-##'     returns. Default is 20L. Maximum number of values returned by
-##'     the server is 1000. To retrieve the next results, set `start`
-##'     1000. See examle below.
+##'     returns. Default is 20L. OLS3 capped this at 1000; OLS4 lifts
+##'     that restriction and returns as many rows as are requested, so
+##'     use [allRows()] with care on queries with many matches. To
+##'     page through results, set `start`. See example below.
 ##'
 ##' @param start `integer(1)` defining the results page.
 ##'     number. Default is 0L.
@@ -186,10 +187,6 @@ OlsSearch <- function(q,
                       start = 0L) {
     if (missing(q))
         stop("You must supply a query.")
-    if (rows > 1000) {
-        warning("Setting row to max value 1000.")
-        rows <- 1000
-    }
     .args <- as.list(match.call())[-1]
     if (missing(rows))
         .args[["rows"]] <- rows
