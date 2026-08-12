@@ -207,7 +207,7 @@ OlsSearch <- function(q,
         params <- append(params, paste(nm, arg, sep = "="))
     }
     ## searchUrl <- "http://www.ebi.ac.uk/ols/beta/api/search?"
-    searchUrl <- "http://www.ebi.ac.uk/ols4/api/search?"
+    searchUrl <- "https://www.ebi.ac.uk/ols4/api/search?"
     url <- paste0(searchUrl,
                   paste(params, collapse = "&"))
     x <- request(url) |>
