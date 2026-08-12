@@ -197,26 +197,42 @@ setMethod("olsTerm", "character",
 ##' @rdname olsTerms
 setMethod("olsTerm", "olsOntology",
           function(object, id) {
-              ## See https://github.com/EBISPOT/ols4/issues/621
+              ns <- olsNamespace(object)
               url <- paste0(
                   "https://www.ebi.ac.uk/ols4/api/ontologies/",
-                  olsNamespace(object),
-                  "/terms/")
-              loc <- object@config$fileLocation
-              if (grepl("ebi.ac.uk", loc)) {
-                  uri <- sub("/[a-zA-z]+\\.owl$", "", loc)
-              }
-              else if (grepl("purl.obolibrary.org", loc)) {
-                  uri <- "http://purl.obolibrary.org/obo"
-              } else stop("Unknown fileLocation")
-              uri <- paste0(uri, "/", sub(":", "_", id))
-              uri <- gsub("%", "%25", URLencode(uri, TRUE))
-              url <- paste0(url, uri)
-              request(url) |>
-                  req_perform() |>
-                  resp_body_json() |>
-                  termFromJson()
+                  ns, "/terms")
+              ## The term is looked up by its identifier rather than
+              ## by an IRI reconstructed from the ontology's
+              ## fileLocation: the latter only worked for ontologies
+              ## served from the EBI or the OBO PURL servers, and
+              ## failed for the ~75 (out of 283) ontologies hosted
+              ## elsewhere.
+              ## See https://github.com/EBISPOT/ols4/issues/621
+              ans <- termByField(url, "obo_id", id)
+              if (!length(ans)) ## non-OBO identifiers
+                  ans <- termByField(url, "short_form", sub(":", "_", id))
+              if (!length(ans))
+                  stop("No term '", id, "' found in the '", ns,
+                       "' ontology.")
+              termFromJson(ans[[1]])
           })
+
+##' Query an ontology's terms by a single field, such as `"obo_id"` or
+##' `"short_form"`. Returns the (possibly empty) list of matching
+##' terms; a 404 response, used by OLS to signal that nothing matched,
+##' is returned as `NULL` rather than thrown as an error.
+##'
+##' @noRd
+termByField <- function(url, field, value) {
+    url <- paste0(url, "?", field, "=",
+                  URLencode(value, reserved = TRUE))
+    resp <- request(url) |>
+        req_error(is_error = function(resp) resp_status(resp) >= 500L) |>
+        req_perform()
+    if (resp_status(resp) != 200L)
+        return(NULL)
+    resp_body_json(resp)[["_embedded"]][["terms"]]
+}
 
 
 ##' @export
