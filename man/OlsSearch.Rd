@@ -82,9 +82,10 @@ of a given term. Supply a list of IRI for the terms that you
 want to search under.}
 
 \item{rows}{`integer(1)` defining the number of query
-returns. Default is 20L. Maximum number of values returned by
-the server is 1000. To retrieve the next results, set `start`
-1000. See examle below.}
+returns. Default is 20L. OLS3 capped this at 1000; OLS4 lifts
+that restriction and returns as many rows as are requested, so
+use [allRows()] with care on queries with many matches. To
+page through results, set `start`. See example below.}
 
 \item{start}{`integer(1)` defining the results page.
 number. Default is 0L.}
@@ -101,6 +102,14 @@ number. Default is 0L.}
 Searching the Ontology Lookup Service is done first by creating an
 object `OlsSearch` using the `OlsSearch()` constructor. Query
 responses are then retrieved with the `olsSearch()` function.
+
+Note that OLS4 omits empty fields from its search responses. The
+columns of the `data.frame` produced by `as(object,
+"data.frame")` therefore reflect the fields that are populated in
+that particular response, and two queries against the same
+ontology can return different sets of columns. Match or combine
+results on a column that is always present, such as `obo_id` or
+`iri`, rather than assuming a fixed set of columns.
 }
 \examples{
 
@@ -159,9 +168,14 @@ tg3 <- OlsSearch(q = "trans-golgi", rows = 10, start = 0) |>
                  olsSearch() |>
                  as("data.frame")
 
-## The two consecutive small results are identical
-## to the larger on.
-identical(rbind(tg1, tg2), tg3)
+## The terms returned by two consecutive small queries are
+## identical to those returned by the larger query. Only the term
+## identifiers are compared here: OLS4 omits empty fields from its
+## responses, so the columns of the individual data frames depend
+## on which fields happen to be populated in that batch, and
+## `rbind()` may fail with "numbers of columns of arguments do not
+## match".
+identical(c(tg1$obo_id, tg2$obo_id), tg3$obo_id)
 }
 \references{
 - OLS3 API (the OLS4 API should function identically to the OLS3):
