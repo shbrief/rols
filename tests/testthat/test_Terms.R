@@ -36,6 +36,27 @@ test_that("constructors different URIs (issue 42)", {
     expect_is(olsTerm("go", "GO:0005802"), "olsTerm")
 })
 
+test_that("constructors for ontologies hosted outside EBI/OBO PURL", {
+    ## These used to fail with "Unknown fileLocation", because the
+    ## term IRI was reconstructed from the ontology's fileLocation.
+    expect_is(olsTerm("addicto", "ADDICTO:0000012"), "olsTerm")
+    expect_is(olsTerm("bao", "BAO:0000015"), "olsTerm")
+    expect_is(olsTerm("ncit", "NCIT:C1000"), "olsTerm")
+    expect_identical(termId(olsTerm("addicto", "ADDICTO:0000012")),
+                     "ADDICTO:0000012")
+    expect_error(olsTerm("go", "GO:0000000000"), "No term")
+})
+
+test_that("terms with fields omitted by OLS4 are still valid", {
+    ## OLS4 drops empty fields from its responses; `ontology_prefix`
+    ## is absent for this term, and used to fail class validity with
+    ## 'got class "NULL"'.
+    trm <- olsTerm("dcat", "DCTERMS:Agent")
+    expect_true(validObject(trm))
+    expect_true(is.na(termPrefix(trm)))
+    expect_identical(termLabel(trm), "Agent")
+})
+
 test_that("show methods", {
     expect_null(show(trms))
     ## expect_null(show(trms[1]))

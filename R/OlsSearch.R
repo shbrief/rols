@@ -9,6 +9,14 @@
 ##' object `OlsSearch` using the `OlsSearch()` constructor. Query
 ##' responses are then retrieved with the `olsSearch()` function.
 ##'
+##' Note that OLS4 omits empty fields from its search responses. The
+##' columns of the `data.frame` produced by `as(object,
+##' "data.frame")` therefore reflect the fields that are populated in
+##' that particular response, and two queries against the same
+##' ontology can return different sets of columns. Match or combine
+##' results on a column that is always present, such as `obo_id` or
+##' `iri`, rather than assuming a fixed set of columns.
+##'
 ##' @references
 ##'
 ##' - OLS3 API (the OLS4 API should function identically to the OLS3):
@@ -78,9 +86,14 @@
 ##'                  olsSearch() |>
 ##'                  as("data.frame")
 ##'
-##' ## The two consecutive small results are identical
-##' ## to the larger on.
-##' identical(rbind(tg1, tg2), tg3)
+##' ## The terms returned by two consecutive small queries are
+##' ## identical to those returned by the larger query. Only the term
+##' ## identifiers are compared here: OLS4 omits empty fields from its
+##' ## responses, so the columns of the individual data frames depend
+##' ## on which fields happen to be populated in that batch, and
+##' ## `rbind()` may fail with "numbers of columns of arguments do not
+##' ## match".
+##' identical(c(tg1$obo_id, tg2$obo_id), tg3$obo_id)
 ############################################
 ## OlsSearch class
 .OlsSearch <- setClass("OlsSearch",
@@ -150,9 +163,10 @@
 ##'     want to search under.
 ##'
 ##' @param rows `integer(1)` defining the number of query
-##'     returns. Default is 20L. Maximum number of values returned by
-##'     the server is 1000. To retrieve the next results, set `start`
-##'     1000. See examle below.
+##'     returns. Default is 20L. OLS3 capped this at 1000; OLS4 lifts
+##'     that restriction and returns as many rows as are requested, so
+##'     use [allRows()] with care on queries with many matches. To
+##'     page through results, set `start`. See example below.
 ##'
 ##' @param start `integer(1)` defining the results page.
 ##'     number. Default is 0L.
@@ -173,10 +187,6 @@ OlsSearch <- function(q,
                       start = 0L) {
     if (missing(q))
         stop("You must supply a query.")
-    if (rows > 1000) {
-        warning("Setting row to max value 1000.")
-        rows <- 1000
-    }
     .args <- as.list(match.call())[-1]
     if (missing(rows))
         .args[["rows"]] <- rows
@@ -197,7 +207,7 @@ OlsSearch <- function(q,
         params <- append(params, paste(nm, arg, sep = "="))
     }
     ## searchUrl <- "http://www.ebi.ac.uk/ols/beta/api/search?"
-    searchUrl <- "http://www.ebi.ac.uk/ols4/api/search?"
+    searchUrl <- "https://www.ebi.ac.uk/ols4/api/search?"
     url <- paste0(searchUrl,
                   paste(params, collapse = "&"))
     x <- request(url) |>

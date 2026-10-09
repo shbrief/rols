@@ -197,26 +197,42 @@ setMethod("olsTerm", "character",
 ##' @rdname olsTerms
 setMethod("olsTerm", "olsOntology",
           function(object, id) {
-              ## See https://github.com/EBISPOT/ols4/issues/621
+              ns <- olsNamespace(object)
               url <- paste0(
                   "https://www.ebi.ac.uk/ols4/api/ontologies/",
-                  olsNamespace(object),
-                  "/terms/")
-              loc <- object@config$fileLocation
-              if (grepl("ebi.ac.uk", loc)) {
-                  uri <- sub("/[a-zA-z]+\\.owl$", "", loc)
-              }
-              else if (grepl("purl.obolibrary.org", loc)) {
-                  uri <- "http://purl.obolibrary.org/obo"
-              } else stop("Unknown fileLocation")
-              uri <- paste0(uri, "/", sub(":", "_", id))
-              uri <- gsub("%", "%25", URLencode(uri, TRUE))
-              url <- paste0(url, uri)
-              request(url) |>
-                  req_perform() |>
-                  resp_body_json() |>
-                  termFromJson()
+                  ns, "/terms")
+              ## The term is looked up by its identifier rather than
+              ## by an IRI reconstructed from the ontology's
+              ## fileLocation: the latter only worked for ontologies
+              ## served from the EBI or the OBO PURL servers, and
+              ## failed for the ~75 (out of 283) ontologies hosted
+              ## elsewhere.
+              ## See https://github.com/EBISPOT/ols4/issues/621
+              ans <- termByField(url, "obo_id", id)
+              if (!length(ans)) ## non-OBO identifiers
+                  ans <- termByField(url, "short_form", sub(":", "_", id))
+              if (!length(ans))
+                  stop("No term '", id, "' found in the '", ns,
+                       "' ontology.")
+              termFromJson(ans[[1]])
           })
+
+##' Query an ontology's terms by a single field, such as `"obo_id"` or
+##' `"short_form"`. Returns the (possibly empty) list of matching
+##' terms; a 404 response, used by OLS to signal that nothing matched,
+##' is returned as `NULL` rather than thrown as an error.
+##'
+##' @noRd
+termByField <- function(url, field, value) {
+    url <- paste0(url, "?", field, "=",
+                  URLencode(value, reserved = TRUE))
+    resp <- request(url) |>
+        req_error(is_error = function(resp) resp_status(resp) >= 500L) |>
+        req_perform()
+    if (resp_status(resp) != 200L)
+        return(NULL)
+    resp_body_json(resp)[["_embedded"]][["terms"]]
+}
 
 
 ##' @export
@@ -524,21 +540,31 @@ makeOlsTerms <- function(oid, pagesize, obsolete) {
     .olsTerms(x = ans)
 }
 
+##' OLS4 omits empty fields from its responses. Substitute a typed
+##' `NA` for those that populate strictly typed (i.e. non
+##' `NullOr*`) slots of the `olsTerm` class, which would otherwise
+##' fail validity with "got class NULL".
+##'
+##' @noRd
+na_if_null <- function(x, mode = "character")
+    if (is.null(x)) as.vector(NA, mode) else x
+
 termFromJson <- function(x) {
-    .olsTerm(iri = x[["iri"]],
-          lang = x[["lang"]],
+    .olsTerm(iri = na_if_null(x[["iri"]]),
+          lang = na_if_null(x[["lang"]]),
           description = x[["description"]],
           synonyms = x[["synonyms"]],
           annotation = x[["annotation"]],
-          label = x[["label"]],
-          ontology_name = x[["ontology_name"]],
-          ontology_prefix = x[["ontology_prefix"]],
-          ontology_iri = x[["ontology_iri"]],
-          is_obsolete = x[["is_obsolete"]],
+          label = na_if_null(x[["label"]]),
+          ontology_name = na_if_null(x[["ontology_name"]]),
+          ontology_prefix = na_if_null(x[["ontology_prefix"]]),
+          ontology_iri = na_if_null(x[["ontology_iri"]]),
+          is_obsolete = na_if_null(x[["is_obsolete"]], "logical"),
           term_replaced_by = x[["term_replaced_by"]],
-          is_defining_ontology = x[["is_defining_ontology"]],
-          has_children = x[["has_children"]],
-          is_root = x[["is_root"]],
+          is_defining_ontology =
+              na_if_null(x[["is_defining_ontology"]], "logical"),
+          has_children = na_if_null(x[["has_children"]], "logical"),
+          is_root = na_if_null(x[["is_root"]], "logical"),
           short_form = x[["short_form"]],
           obo_id = x[["obo_id"]],
           in_subset = x[["in_subset"]],
@@ -546,7 +572,7 @@ termFromJson <- function(x) {
           obo_xref = x[["obo_xref"]],
           obo_synonym = x[["obo_synonym"]],
           is_preferred_root = x[["is_preferred_root"]],
-          links = x[["_links"]])
+          links = if (is.null(x[["_links"]])) list() else x[["_links"]])
 }
 
 fix_null <- function(x) {

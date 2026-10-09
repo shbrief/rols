@@ -54,7 +54,7 @@ setMethod("olsProperties", "olsOntology",
 setMethod("olsProperties", "character",
           function(object) {
               url <-
-                  paste0("http://www.ebi.ac.uk/ols4/api/ontologies/",
+                  paste0("https://www.ebi.ac.uk/ols4/api/ontologies/",
                          object, "/properties")
               x <- lapply(ols_requests(url, what = "properties"),
                           propertyFromJson)

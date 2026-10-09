@@ -1,5 +1,28 @@
 # rols 3.9
 
+## rols 3.9.2
+
+- Remove the startup deprecation warning, left over from before the
+  package was transferred.
+- `olsTerm()` now looks terms up by their identifier instead of
+  reconstructing their IRI from the ontology's `fileLocation`. The
+  latter only handled ontologies served from the EBI and OBO PURL
+  servers, and failed with "Unknown fileLocation" for 75 of the 283
+  ontologies in OLS4.
+- Terms are no longer rejected as invalid when OLS4 omits an empty
+  field (such as `ontology_prefix`) from its response; the
+  corresponding slot is set to `NA` instead.
+- Drop the 1000 row cap in `OlsSearch()`. OLS3 enforced it
+  server-side, OLS4 does not, and it was applied to the `rows` slot
+  but not to the query URL, leaving the two out of sync.
+- Fix the `OlsSearch()` example, which failed `R CMD check` when
+  `rbind()`-ing pages of search results that had different columns
+  (contributed by Levi Waldron, lwaldron, in #52).
+- Document that OLS4 omits empty fields from search responses, so the
+  columns of a coerced `data.frame` vary between queries.
+- Use `https` rather than `http` for the search and properties
+  endpoints.
+
 ## rols 3.9.1
 
 - Transfer package and maintenance to Sehyun Oh (shbrief). Thank you
