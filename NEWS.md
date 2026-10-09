@@ -1,5 +1,12 @@
 # rols 3.9
 
+## rols 3.9.3
+
+- Point `URL` and `BugReports` at the current repository and
+  documentation site. The previous `URL` no longer resolved.
+- Stop excluding `NEWS.md` from the built package, so that package news
+  is picked up for the Bioconductor release announcements.
+
 ## rols 3.9.2
 
 - Remove the startup deprecation warning, left over from before the
