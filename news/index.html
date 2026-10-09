@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">rols</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.7.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.9.2</span>
       </span>
     </div>
 
@@ -51,12 +51,30 @@
     </div>
 
     <div class="section level2">
-<h2 class="page-header" data-toc-text="3.7" id="rols-37">rols 3.7<a class="anchor" aria-label="anchor" href="#rols-37"></a></h2>
+<h2 class="page-header" data-toc-text="3.9" id="rols-39">rols 3.9<a class="anchor" aria-label="anchor" href="#rols-39"></a></h2>
+<div class="section level3">
+<h3 id="rols-3-9">rols 3.9.2<a class="anchor" aria-label="anchor" href="#rols-3-9"></a></h3>
+<ul><li>Remove the startup deprecation warning, left over from before the package was transferred.</li>
+<li>
+<code><a href="../reference/olsTerms.html">olsTerm()</a></code> now looks terms up by their identifier instead of reconstructing their IRI from the ontology’s <code>fileLocation</code>. The latter only handled ontologies served from the EBI and OBO PURL servers, and failed with “Unknown fileLocation” for 75 of the 283 ontologies in OLS4.</li>
+<li>Terms are no longer rejected as invalid when OLS4 omits an empty field (such as <code>ontology_prefix</code>) from its response; the corresponding slot is set to <code>NA</code> instead.</li>
+<li>Drop the 1000 row cap in <code><a href="../reference/OlsSearch.html">OlsSearch()</a></code>. OLS3 enforced it server-side, OLS4 does not, and it was applied to the <code>rows</code> slot but not to the query URL, leaving the two out of sync.</li>
+<li>Fix the <code><a href="../reference/OlsSearch.html">OlsSearch()</a></code> example, which failed <code>R CMD check</code> when <code><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind()</a></code>-ing pages of search results that had different columns (contributed by Levi Waldron, lwaldron, in <a href="https://github.com/lgatto/rols/issues/52" class="external-link">#52</a>).</li>
+<li>Document that OLS4 omits empty fields from search responses, so the columns of a coerced <code>data.frame</code> vary between queries.</li>
+<li>Use <code>https</code> rather than <code>http</code> for the search and properties endpoints.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="rols-3-9-1">rols 3.9.1<a class="anchor" aria-label="anchor" href="#rols-3-9-1"></a></h3>
+<ul><li>Transfer package and maintenance to Sehyun Oh (shbrief). Thank you for taking the package over!</li>
+</ul></div>
 </div>
     <div class="section level2">
-<h2 class="page-header" data-toc-text="3.7.1" id="rols-371">rols 3.7.1<a class="anchor" aria-label="anchor" href="#rols-371"></a></h2>
+<h2 class="page-header" data-toc-text="3.7" id="rols-37">rols 3.7<a class="anchor" aria-label="anchor" href="#rols-37"></a></h2>
+<div class="section level3">
+<h3 id="rols-3-7">rols 3.7.1<a class="anchor" aria-label="anchor" href="#rols-3-7"></a></h3>
 <ul><li>Fix bug in <code>rols::Ontologies()</code> (see <a href="https://github.com/lgatto/rols/issues/48" class="external-link">#48</a>)</li>
 </ul></div>
+</div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="2.99" id="rols-299">rols 2.99<a class="anchor" aria-label="anchor" href="#rols-299"></a></h2>
 <div class="section level3">
@@ -643,11 +661,11 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Laurent Gatto.</p>
+  <p></p><p>Developed by Laurent Gatto, Sehyun Oh.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.9000.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.9000.</p>
 </div>
 
       </footer></div>
